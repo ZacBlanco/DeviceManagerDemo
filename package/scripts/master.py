@@ -1,5 +1,7 @@
 import sys, util
 from resource_management import *
+from util.shell import Shell
+import util.config
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -25,6 +27,12 @@ class Master(Script):
 	
 	def install(self, env):
 		# Fill me in!
+		self.configure(env)
+		sh = Shell()
+		conf_dir = config.get_conf_dir()
+		sh.set_cwd(conf_dir)
+		output = sh.run('bash files/install.sh')
+		print(output[0])
 		print 'Install the Sample Srv Master';
 	
 	def stop(self, env):
@@ -33,6 +41,12 @@ class Master(Script):
 	
 	def start(self, env):
 		# Fill me in!
+		self.configure(env)
+		sh = Shell()
+		conf_dir = config.get_conf_dir()
+		sh.set_cwd(conf_dir)
+		output = sh.run('bash files/startDemoServices.sh')
+		print(output[0])
 		print 'Start the Sample Srv Master';
 	
 	def status(self, env):

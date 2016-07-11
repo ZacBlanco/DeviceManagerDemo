@@ -1,4 +1,7 @@
 #!/bin/bash
+
+cd /root/devicemanagerdemo/package/files
+
 VERSION=`hdp-select status hadoop-client | sed 's/hadoop-client - \([0-9]\.[0-9]\).*/\1/'`
 INTVERSION=$(echo $VERSION*10 | bc | grep -Po '([0-9][0-9])')
 echo "*********************************SANDBOX VERSION IS $VERSION" 
@@ -104,15 +107,15 @@ if ! [[ "$NIFISTATUS" == INSTALLED || "$NIFISTATUS" == STARTED ]]; then
 	echo "*********************************Creating NIFI configuration..."
 
 	# Create and apply configuration
-	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-ambari-config /root/DeviceManagerDemo/Nifi/config/nifi-ambari-config.json
+	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-ambari-config /root/devicemanagerdemo/package/files/Nifi/config/nifi-ambari-config.json
 	sleep 2
-	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-bootstrap-env /root/DeviceManagerDemo/Nifi/config/nifi-bootstrap-env.json
+	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-bootstrap-env /root/devicemanagerdemo/package/files/Nifi/config/nifi-bootstrap-env.json
 	sleep 2
-	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-flow-env /root/DeviceManagerDemo/Nifi/config/nifi-flow-env.json
+	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-flow-env /root/devicemanagerdemo/package/files/Nifi/config/nifi-flow-env.json
 	sleep 2
-	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-logback-env /root/DeviceManagerDemo/Nifi/config/nifi-logback-env.json
+	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-logback-env /root/devicemanagerdemo/package/files/Nifi/config/nifi-logback-env.json
 	sleep 2
-	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-properties-env /root/DeviceManagerDemo/Nifi/config/nifi-properties-env.json
+	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-properties-env /root/devicemanagerdemo/package/files/Nifi/config/nifi-properties-env.json
 
 	sleep 2
 	echo "*********************************Adding NIFI MASTER role to Host..."
@@ -201,7 +204,7 @@ cp target/DeviceMonitor-0.0.1-SNAPSHOT.jar /home/storm
 cd ..
 
 echo "*********************************Building Spark Topology"
-#Build Spark Project and Copy to working folder
+Build Spark Project and Copy to working folder
 cd DeviceMonitorNostradamus
 mvn clean package
 cp target/DeviceMonitorNostradamus-0.0.1-SNAPSHOT-jar-with-dependencies.jar /home/spark
@@ -386,6 +389,8 @@ EOF
 chmod 755 /etc/init.d/solr
 
 #Import Spark Model
+pwd
+cd /root/devicemanagerdemo/package/files
 cd Model
 unzip nostradamusSVMModel.zip
 cp -rvf nostradamusSVMModel /tmp
@@ -407,7 +412,7 @@ sleep 10
 curl "http://sandbox.hortonworks.com:8983/solr/admin/cores?action=CREATE&name=settopbox&instanceDir=/opt/lucidworks-hdpsearch/solr/server/solr/settopbox&configSet=data_driven_schema_configs"
 
 # Reboot to refresh configuration
-reboot now
+#reboot now
 
 #slider create mapui --template /usr/hdp/docker/dockerbuild/mapui/appConfig.json --metainfo /usr/hdp/docker/dockerbuild/mapui/metainfo.json --resources /usr/hdp/docker/dockerbuild/mapui/resources.json
 

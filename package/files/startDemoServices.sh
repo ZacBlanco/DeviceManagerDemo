@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /root/devicemanagerdemo/package/files
+
 #Start Kafka
 KAFKASTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/KAFKA | grep '"state" :' | grep -Po '([A-Z]+)')
 if [ "$KAFKASTATUS" == INSTALLED ]; then
@@ -126,4 +128,4 @@ service docker start
 # Start UI servlet on Yarn using Slider
 slider create mapui --template /home/docker/dockerbuild/mapui/appConfig.json --metainfo /home/docker/dockerbuild/mapui/metainfo.json --resources /home/docker/dockerbuild/mapui/resources.json
 # yarn application -kill $(yarn application -list | grep -Po '(application_[0-9]+_[0-9]+)\s(biologicsmanufacturingui)' | grep -Po '(application_[0-9]+_[0-9]+)')
-nohup spark-submit --class com.hortonworks.iot.spark.streaming.SparkNostradamus --master local[4] /home/spark/DeviceMonitorNostradamus-0.0.1-SNAPSHOT-jar-with-dependencies.jar >> /root/DeviceMonitorNostradamus.log &
+nohup spark-submit --class com.hortonworks.iot.spark.streaming.SparkNostradamus --master local[4] /home/spark/DeviceMonitorNostradamus-0.0.1-SNAPSHOT-jar-with-dependencies.jar >> /root/devicemanagerdemo/package/configuration/files/DeviceMonitorNostradamus.log &

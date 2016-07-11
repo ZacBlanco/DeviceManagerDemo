@@ -29,7 +29,7 @@ This framework hopes to provide a rich set of features including the following:
 
 	export VERSION=2.4
 	rm -rf /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
-	sudo git clone https://github.com/zacblanco/hdp-demo-bootstrap.git /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
+	sudo git clone https://github.com/zacblanco/devicemanagerdemo.git /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
 	ambari-server restart
 
 ## Need more Information?
