@@ -1,77 +1,39 @@
-# DeviceManagerDemo
-The Device Manager Demo is designed to demonstrate a fully functioning modern Data/IoT application. 
-It is a Lambda architecture built using the Hortonworks Data Platform and Hortonworks Data Flow. 
-The demo shows how a Telecom can manage customer device outages using predictive maintenance and a connected workforce.
 
-# Install DeviceManagerDemo
-Download and Import Hortonworks Sandbox 2.4 for Virtual Box. 
+<div style="text-align:center"><img src="readme-assets/logo.png"></div>
+<!--![Logo](readme-assets/logo.png)-->
 
-Should work with VMWare but has not been tested. 
+[![Build Status](https://img.shields.io/travis/ZacBlanco/hdp-demo-bootstrap.svg?branch=master)](https://travis-ci.org/ZacBlanco/hdp-demo-bootstrap) [![Coverage Status](https://coveralls.io/repos/github/ZacBlanco/hdp-demo-bootstrap/badge.svg?branch=master)](https://coveralls.io/github/ZacBlanco/hdp-demo-bootstrap?branch=master) [![Python 2.6, 2.7](https://img.shields.io/badge/python-2.6%2C%202.7-orange.svg)](https://docs.python.org/2/) [![Hortonworks Data Platform](https://img.shields.io/badge/Hortonworks-Data%20Platform-brightgreen.svg)](http://hortonworks.com)
 
-Modify local hosts file so that sandbox.hortonworks.com resolves to 127.0.0.1 (This is important and may break the simulator and UI) 
+# Demo Bootstrap
 
-Configure Virtual Box Port Forward
+> An easy to use framemwork for creating, installing, and running end-to-end demo applications on the Hortonworks Data Platform.
 
-8082 – HDF_HTTP_Ingest
+This framework hopes to provide a rich set of features including the following:
 
-8090 - MapUI
+- Ability to deploy an app to the [Hortonworks Sandbox](http://hortonworks.com/products/sandbox/) or on a multi-node cluster
+- Single command Install and Remove via an Ambari Service.
+- A simple webapp to display realtime data (via an Ambari view)
+- Auto-install HDF
+- A built-in webapp skeleton.
+- A data generation simulator
+- Deployment of pre-made Zeppelin notebooks
+- Automatically import NiFi templates
+- Simple Kerberos setup for Sandbox environment*
+- Deploy apps on YARN with Slider*
 
-8091 - Cometd
+\* = possible feature
 
-9090 – HDF_Studio
+## Quick Demo Installation
 
-Start Sandbox, SSH to Sandbox (ssh root@sandbox.hortonworks.com -p 2222)
+**Note** Ambari must be installed on your machine for these commands to work.
 
-Wait for Sandbox to fully boot up, all service need to finish starting
+	export VERSION=2.4
+	rm -rf /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
+	sudo git clone https://github.com/zacblanco/hdp-demo-bootstrap.git /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
+	ambari-server restart
 
-Change Ambari password to "admin" (ambari-admin-password-reset)
+## Need more Information?
+
+### [Read the docs here!](docs/README.md)
  
-(!!!!!!!!!!!!!AMBARI PASSWORD MUST BE SET TO "admin" (no quotes)!!!!!!)
-
-cd /root (use the /root directory to begin the install)
-
-git clone https://github.com/vakshorton/DeviceManagerDemo.git
-
-(make sure that git cloned to /root/DeviceManagerDemo)
-
-cd DeviceManagerDemo
-
-./install.sh
-
-Install script reboot once complete. This is required to refresh session configuration.
-
-Wait for Sandbox to fully reboot
-
-Log back in via SSH (ssh root@sandbox.hortonworks.com -p 2222)
-
-# Start Demo
-The script to start demo services should be located in the /root/DeviceManagerDemo directory
-
-./startDemoServices.sh
-
-Slider will download the servlet (UI) docker containers from the docker hub so it may take a few minutes for the application server to start
-
-Bring up the UI in a Browser: http://sandbox.hortonworks.com:8090/MapUI/DeviceMap
-
-Start Simulation:
-
-The Simulator should be located in the DeviceManagerDemo directory
-
-java -jar DeviceSimulator-0.0.1-SNAPSHOT-jar-with-dependencies.jar Technician 1000 Simulation
-
-java -jar DeviceSimulator-0.0.1-SNAPSHOT-jar-with-dependencies.jar STB 1000 Simulation
-
-USAGE:
-
-java -jar simulator.jar arg1=Simulator-Type{BioReactor|FiltrationSystem} arg2=EntityId{1000} arg3={Simulation|Training}
-
-Example:
-
-java -jar DeviceSimulator-0.0.1-SNAPSHOT-jar-with-dependencies.jar Technician 1000 Simulation
-
-java -jar DeviceSimulator-0.0.1-SNAPSHOT-jar-with-dependencies.jar STB 1000 Simulation
-
-# MAP UI
-![Alt text](/screenshot/DeviceManagerScreenShot.png "MapUI")
-
-
+ 
