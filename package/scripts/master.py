@@ -1,7 +1,7 @@
 import sys, util
 from resource_management import *
 from util.shell import Shell
-import util.config
+from util import config
 reload(sys)
 sys.setdefaultencoding('utf8')
 
