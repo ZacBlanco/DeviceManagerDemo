@@ -17,8 +17,6 @@ logger = Logger('Shell').getLogger()
 # If no arguments are passed to the constructor we assume default cwd
 
 class Shell:
-	
-	cwd = ''
 
 	def run(self, command, args=''):
 		
@@ -29,7 +27,7 @@ class Shell:
 		if len(self.cwd) > 0:
 			logger.debug('Working Directory: ' + self.cwd)
 			logger.info('Running Command: ' + command)
-			process = subprocess.Popen(command, shell=True, cwd=path, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+			process = subprocess.Popen(command, shell=True, cwd=self.cwd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
 		else:
 			process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 		output = process.communicate()

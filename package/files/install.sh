@@ -4,15 +4,15 @@ cd /root/devicemanagerdemo/package/files
 
 VERSION=`hdp-select status hadoop-client | sed 's/hadoop-client - \([0-9]\.[0-9]\).*/\1/'`
 INTVERSION=$(echo $VERSION*10 | bc | grep -Po '([0-9][0-9])')
-echo "*********************************SANDBOX VERSION IS $VERSION" 
+>&2 echo "*********************************SANDBOX VERSION IS $VERSION" 
 if [ "$INTVERSION" -lt 24 ]; then	
-	echo "*********************************Downloading NIFI..." 
+	>&2 echo "*********************************Downloading NIFI..." 
 	sudo git clone https://github.com/abajwa-hw/ambari-nifi-service.git  /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/NIFI
 	service ambari restart
-	echo "*********************************Install Zeppelin Notebook"
+	>&2 echo "*********************************Install Zeppelin Notebook"
 	cp -rvf Zeppelin/notebook/* /usr/hdp/current/zeppelin-server/lib/notebook/
 else
-	echo "*********************************Install Zeppelin Notebook"
+	>&2 echo "*********************************Install Zeppelin Notebook"
 	cp -rvf Zeppelin/notebook/* /usr/hdp/current/zeppelin-server/lib/notebook/  
 fi
 
@@ -26,19 +26,19 @@ until [ "$LOOPESCAPE" == true ]; do
         else
         		AUTHSTATUS=$(curl -u admin:admin -I -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox | grep HTTP | grep -Po '( [0-9]+)'| grep -Po '([0-9]+)')
                 if [ "$AUTHSTATUS" == 403 ]; then
-                	echo "THE AMBARI PASSWORD IS NOT SET TO: admin"
-                	echo "RUN COMMAND: ambari-admin-password-reset, SET PASSWORD: admin"
+                	>&2 echo "THE AMBARI PASSWORD IS NOT SET TO: admin"
+                	>&2 echo "RUN COMMAND: ambari-admin-password-reset, SET PASSWORD: admin"
                 	exit 403
                 else
                 	TASKSTATUS="PENDING"
                 fi
         fi
-		echo "Waiting for Ambari..."
-        echo "Ambari Status... " $TASKSTATUS
+		>&2 echo "Waiting for Ambari..."
+        >&2 echo "Ambari Status... " $TASKSTATUS
         sleep 2
 done
 
-echo "*********************************Changing YARN Container Memory Size..."
+>&2 echo "*********************************Changing YARN Container Memory Size..."
 /var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox yarn-site "yarn.scheduler.maximum-allocation-mb" "6144"
 sleep 2
 /var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox yarn-site "yarn.nodemanager.resource.memory-mb" "6144"
@@ -46,7 +46,7 @@ sleep 2
 # Ensure that Yarn is not in a transitional state
 YARNSTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/YARN | grep '"state" :' | grep -Po '([A-Z]+)')
 sleep 2
-echo "YARN STATUS: $YARNSTATUS"
+>&2 echo "YARN STATUS: $YARNSTATUS"
 LOOPESCAPE="false"
 if ! [[ "$YARNSTATUS" == STARTED || "$YARNSTATUS" == INSTALLED ]]; then
         until [ "$LOOPESCAPE" == true ]; do
@@ -54,16 +54,16 @@ if ! [[ "$YARNSTATUS" == STARTED || "$YARNSTATUS" == INSTALLED ]]; then
                 if [[ "$TASKSTATUS" == STARTED || "$TASKSTATUS" == INSTALLED ]]; then
                         LOOPESCAPE="true"
                 fi
-                echo "*********************************Task Status" $TASKSTATUS
+                >&2 echo "*********************************Task Status" $TASKSTATUS
                 sleep 2
         done
 fi
 
 sleep 2
-echo "*********************************Restarting YARN..."
+>&2 echo "*********************************Restarting YARN..."
 if [ "$YARNSTATUS" == STARTED ]; then
         TASKID=$(curl -u admin:admin -H "X-Requested-By:ambari" -i -X PUT -d '{"RequestInfo": {"context": "Stop YARN"}, "ServiceInfo": {"state": "INSTALLED"}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/YARN | grep "id" | grep -Po '([0-9]+)')
-        echo "*********************************AMBARI TaskID " $TASKID
+        >&2 echo "*********************************AMBARI TaskID " $TASKID
         sleep 2
         LOOPESCAPE="false"
         until [ "$LOOPESCAPE" == true ]; do
@@ -71,15 +71,15 @@ if [ "$YARNSTATUS" == STARTED ]; then
                 if [ "$TASKSTATUS" == COMPLETED ]; then
                         LOOPESCAPE="true"
                 fi
-                echo "*********************************Task Status" $TASKSTATUS
+                >&2 echo "*********************************Task Status" $TASKSTATUS
                 sleep 2
         done
 elif [ "$YARNSTATUS" == INSTALLED ]; then
-        echo "YARN Service Stopped..."
+        >&2 echo "YARN Service Stopped..."
 fi
 
 TASKID=$(curl -u admin:admin -H "X-Requested-By:ambari" -i -X PUT -d '{"RequestInfo": {"context": "Start YARN"}, "ServiceInfo": {"state": "STARTED"}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/YARN | grep "id" | grep -Po '([0-9]+)')
-echo "*********************************AMBARI TaskID " $TASKID
+>&2 echo "*********************************AMBARI TaskID " $TASKID
 sleep 2
 LOOPESCAPE="false"
 until [ "$LOOPESCAPE" == true ]; do
@@ -87,24 +87,24 @@ until [ "$LOOPESCAPE" == true ]; do
         if [ "$TASKSTATUS" == COMPLETED ]; then
                 LOOPESCAPE="true"
         fi
-        echo "*********************************Task Status" $TASKSTATUS
+        >&2 echo "*********************************Task Status" $TASKSTATUS
         sleep 2
 done
 
 # Check if NIFI Service is Installed
 NIFISTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI | grep '"state" :' | grep -Po '([A-Z]+)')
 if ! [[ "$NIFISTATUS" == INSTALLED || "$NIFISTATUS" == STARTED ]]; then
-	echo "*********************************Creating NIFI service..."
+	>&2 echo "*********************************Creating NIFI service..."
 	# Create NIFI service
 	curl -u admin:admin -H "X-Requested-By:ambari" -i -X POST http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI
 
 	sleep 2
-	echo "*********************************Adding NIFI MASTER component..."
+	>&2 echo "*********************************Adding NIFI MASTER component..."
 	# Add NIFI Master component to service
 	curl -u admin:admin -H "X-Requested-By:ambari" -i -X POST http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI/components/NIFI_MASTER
 
 	sleep 2
-	echo "*********************************Creating NIFI configuration..."
+	>&2 echo "*********************************Creating NIFI configuration..."
 
 	# Create and apply configuration
 	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-ambari-config /root/devicemanagerdemo/package/files/Nifi/config/nifi-ambari-config.json
@@ -118,15 +118,15 @@ if ! [[ "$NIFISTATUS" == INSTALLED || "$NIFISTATUS" == STARTED ]]; then
 	/var/lib/ambari-server/resources/scripts/configs.sh set sandbox.hortonworks.com Sandbox nifi-properties-env /root/devicemanagerdemo/package/files/Nifi/config/nifi-properties-env.json
 
 	sleep 2
-	echo "*********************************Adding NIFI MASTER role to Host..."
+	>&2 echo "*********************************Adding NIFI MASTER role to Host..."
 	# Add NIFI Master role to Sandbox host
 	curl -u admin:admin -H "X-Requested-By:ambari" -i -X POST http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/hosts/sandbox.hortonworks.com/host_components/NIFI_MASTER
 
 	sleep 2
-	echo "*********************************Installing NIFI Service"
+	>&2 echo "*********************************Installing NIFI Service"
 	# Install NIFI Service
 	TASKID=$(curl -u admin:admin -H "X-Requested-By:ambari" -i -X PUT -d '{"RequestInfo": {"context" :"Install Nifi"}, "Body": {"ServiceInfo": {"maintenance_state" : "OFF", "state": "INSTALLED"}}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI | grep "id" | grep -Po '([0-9]+)')
-	echo "*********************************AMBARI TaskID " $TASKID
+	>&2 echo "*********************************AMBARI TaskID " $TASKID
 	sleep 2
 	LOOPESCAPE="false"
 	until [ "$LOOPESCAPE" == true ]; do
@@ -134,37 +134,37 @@ if ! [[ "$NIFISTATUS" == INSTALLED || "$NIFISTATUS" == STARTED ]]; then
         if [ "$TASKSTATUS" == COMPLETED ]; then
                 LOOPESCAPE="true"
         fi
-        echo "*********************************Task Status" $TASKSTATUS
+        >&2 echo "*********************************Task Status" $TASKSTATUS
         sleep 2
 	done
-	echo "*********************************NIFI Service Installed..."
+	>&2 echo "*********************************NIFI Service Installed..."
 
 	sleep 2
-	echo "*********************************Starting NIFI Service..."
+	>&2 echo "*********************************Starting NIFI Service..."
 else
-	echo "*********************************NIFI Service Already Installed..."
+	>&2 echo "*********************************NIFI Service Already Installed..."
 fi
 
 NIFISTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI | grep '"state" :' | grep -Po '([A-Z]+)')
 if [ "$NIFISTATUS" == INSTALLED ]; then
 	# Start NIFI service
 	TASKID=$(curl -u admin:admin -H "X-Requested-By:ambari" -i -X PUT -d '{"RequestInfo": {"context" :"Start NIFI"}, "Body": {"ServiceInfo": {"maintenance_state" : "OFF", "state": "STARTED"}}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/NIFI | grep "id" | grep -Po '([0-9]+)')
-	echo "*********************************AMBARI TaskID " $TASKID
+	>&2 echo "*********************************AMBARI TaskID " $TASKID
 	sleep 2
 	LOOPESCAPE="false"
 	until [ "$LOOPESCAPE" == true ]; do
         TASKSTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/requests/$TASKID | grep "request_status" | grep -Po '([A-Z]+)')
         if [ "$TASKSTATUS" == COMPLETED ]; then
                 LOOPESCAPE="true"
-                echo "*********************************NIFI Service Started..."
+                >&2 echo "*********************************NIFI Service Started..."
         fi
-        echo "*********************************Task Status" $TASKSTATUS
+        >&2 echo "*********************************Task Status" $TASKSTATUS
         sleep 2
 	done
 elif [ "$NIFISTATUS" == STARTED ]; then
-	echo "*********************************NIFI Service Already Started..."
+	>&2 echo "*********************************NIFI Service Already Started..."
 else
-	echo "*********************************NIFI Service in a transition state. Wait for process to complete and then run the install script again."
+	>&2 echo "*********************************NIFI Service in a transition state. Wait for process to complete and then run the install script again."
 	exit 1
 fi
 
@@ -176,41 +176,41 @@ until [ "$LOOPESCAPE" == true ]; do
         else
                 TASKSTATUS="PENDING"
         fi
-		echo "*********************************Waiting for NIFI Servlet..."
-        echo "*********************************NIFI Servlet Status... " $TASKSTATUS
+		>&2 echo "*********************************Waiting for NIFI Servlet..."
+        >&2 echo "*********************************NIFI Servlet Status... " $TASKSTATUS
         sleep 2
 done
 
-echo "*********************************Importing NIFI Template..."
+>&2 echo "*********************************Importing NIFI Template..."
 # Import NIFI Template
 #TEMPLATEID=$(curl -v -F template=@"Nifi/template/DeviceManagerDemo.xml" -X POST http://sandbox.hortonworks.com:9090/nifi-api/controller/templates | grep -Po '<id>([a-z0-9-]+)' | grep -Po '>([a-z0-9-]+)' | grep -Po '([a-z0-9-]+)')
 TEMPLATEID=$(curl -v -F template=@"Nifi/template/DeviceManagerDemo.xml" -X POST http://sandbox.hortonworks.com:9090/nifi-api/controller/templates | grep -Po '<id>([a-z0-9-]+)' | grep -Po '>([a-z0-9-]+)' | grep -Po '([a-z0-9-]+)')
 sleep 2
-echo "*********************************Instantiating NIFI Flow..."
+>&2 echo "*********************************Instantiating NIFI Flow..."
 # Instantiate NIFI Template
 REVISION=$(curl -u admin:admin  -i -X GET http://sandbox.hortonworks.com:9090/nifi-api/controller/revision |grep -Po '\"version\":([0-9]+)' | grep -Po '([0-9]+)')
 curl -u admin:admin -i -H "Content-Type:application/x-www-form-urlencoded" -d "templateId=$TEMPLATEID&originX=100&originY=100&version=$REVISION" -X POST http://sandbox.hortonworks.com:9090/nifi-api/controller/process-groups/root/template-instance
 
-echo "*********************************Installing Maven"
+>&2 echo "*********************************Installing Maven"
 # Install Maven
 wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
 yum install -y apache-maven
 
-echo "*********************************Building Storm Topology"
+>&2 echo "*********************************Building Storm Topology"
 # Build Storm Topology from source
 cd DeviceMonitor
 mvn clean package 
 cp target/DeviceMonitor-0.0.1-SNAPSHOT.jar /home/storm
 cd ..
 
-echo "*********************************Building Spark Topology"
+>&2 echo "*********************************Building Spark Topology"
 Build Spark Project and Copy to working folder
 cd DeviceMonitorNostradamus
 mvn clean package
 cp target/DeviceMonitorNostradamus-0.0.1-SNAPSHOT-jar-with-dependencies.jar /home/spark
 cd ..
 
-echo "*********************************Building Simulator"
+>&2 echo "*********************************Building Simulator"
 #Build Device Simulator from source
 git clone https://github.com/vakshorton/DataSimulators.git
 cd DataSimulators/DeviceSimulator
@@ -221,9 +221,9 @@ cd ../..
 #Start Kafka
 KAFKASTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/KAFKA | grep '"state" :' | grep -Po '([A-Z]+)')
 if [ "$KAFKASTATUS" == INSTALLED ]; then
-	echo "*********************************Starting Kafka Broker..."
+	>&2 echo "*********************************Starting Kafka Broker..."
 	TASKID=$(curl -u admin:admin -i -H 'X-Requested-By: ambari' -X PUT -d '{"RequestInfo": {"context" :"Start Kafka via REST"}, "Body": {"ServiceInfo": {"maintenance_state" : "OFF", "state": "STARTED"}}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/KAFKA | grep "id" | grep -Po '([0-9]+)')
-	echo "*********************************AMBARI TaskID " $TASKID
+	>&2 echo "*********************************AMBARI TaskID " $TASKID
 	sleep 2
 	LOOPESCAPE="false"
 	until [ "$LOOPESCAPE" == true ]; do
@@ -231,14 +231,14 @@ if [ "$KAFKASTATUS" == INSTALLED ]; then
 		if [ "$TASKSTATUS" == COMPLETED ]; then
 			LOOPESCAPE="true"
  		fi
-		echo "*********************************Task Status" $TASKSTATUS
+		>&2 echo "*********************************Task Status" $TASKSTATUS
 		sleep 2
 	done
-	echo "*********************************Kafka Broker Started..."
+	>&2 echo "*********************************Kafka Broker Started..."
 elif [ "$KAFKASTATUS" == STARTED ]; then
-	echo "*********************************Kafka Broker Started..."
+	>&2 echo "*********************************Kafka Broker Started..."
 else
-	echo "*********************************Kafka Broker in a transition state. Wait for process to complete and then run the install script again."
+	>&2 echo "*********************************Kafka Broker in a transition state. Wait for process to complete and then run the install script again."
 	exit 1
 fi
 
@@ -280,9 +280,9 @@ cd ..
 
 HBASESTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/HBASE | grep '"state" :' | grep -Po '([A-Z]+)')
 if [ "$HBASESTATUS" == INSTALLED ]; then
-	echo "*********************************Starting  Hbase Service..."
+	>&2 echo "*********************************Starting  Hbase Service..."
 	TASKID=$(curl -u admin:admin -i -H 'X-Requested-By: ambari' -X PUT -d '{"RequestInfo": {"context" :"Start Hbase via REST"}, "Body": {"ServiceInfo": {"maintenance_state" : "OFF", "state": "STARTED"}}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/HBASE | grep "id" | grep -Po '([0-9]+)')
-	echo "HBASE TaskId " $TASKID
+	>&2 echo "HBASE TaskId " $TASKID
 	sleep 2
 
 	LOOPESCAPE="false"
@@ -294,23 +294,23 @@ if [ "$HBASESTATUS" == INSTALLED ]; then
 			LOOPESCAPE="true"
  		fi
 
-		echo "Task Status" $TASKSTATUS
+		>&2 echo "Task Status" $TASKSTATUS
 		sleep 2
 	done
-	echo "Hbase Service Started..."
+	>&2 echo "Hbase Service Started..."
 
 elif [ "$HBASESTATUS" == STARTED ]; then
-	echo "Hbase Service  Started..."
+	>&2 echo "Hbase Service  Started..."
 else
-	echo "Hbase Service in a transition state. Wait for process to complete and then run the install script again."
+	>&2 echo "Hbase Service in a transition state. Wait for process to complete and then run the install script again."
 	exit 1
 fi
 
 STORMSTATUS=$(curl -u admin:admin -X GET http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/STORM | grep '"state" :' | grep -Po '([A-Z]+)')
 if [ "$STORMSTATUS" == INSTALLED ]; then
-	echo "*********************************Starting Storm Service..."
+	>&2 echo "*********************************Starting Storm Service..."
 	TASKID=$(curl -u admin:admin -i -H 'X-Requested-By: ambari' -X PUT -d '{"RequestInfo": {"context" :"Start Storm via REST"}, "Body": {"ServiceInfo": {"maintenance_state" : "OFF", "state": "STARTED"}}}' http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/STORM | grep "id" | grep -Po '([0-9]+)')
-	echo "*********************************STORM TaskId " $TASKID
+	>&2 echo "*********************************STORM TaskId " $TASKID
 	sleep 2
 	LOOPESCAPE="false"
 	until [ "$LOOPESCAPE" == true ]; do
@@ -318,34 +318,34 @@ if [ "$STORMSTATUS" == INSTALLED ]; then
 		if [ "$TASKSTATUS" == COMPLETED ]; then
 			LOOPESCAPE="true"
  		fi
-		echo "*********************************Task Status" $TASKSTATUS
+		>&2 echo "*********************************Task Status" $TASKSTATUS
 		sleep 2
 	done
-	echo "*********************************Storm Broker Started..."
+	>&2 echo "*********************************Storm Broker Started..."
 elif [ "$STORMSTATUS" == STARTED ]; then
-	echo "*********************************Storm Service Started..."
+	>&2 echo "*********************************Storm Service Started..."
 else
-	echo "*********************************Storm Service in a transition state. Wait for process to complete and then run the install script again."
+	>&2 echo "*********************************Storm Service in a transition state. Wait for process to complete and then run the install script again."
 	exit 1
 fi
 
 # Start NIFI Flow
-echo "*********************************Starting NIFI Flow..."
+>&2 echo "*********************************Starting NIFI Flow..."
 REVISION=$(curl -u admin:admin  -i -X GET http://sandbox.hortonworks.com:9090/nifi-api/controller/revision |grep -Po '\"version\":([0-9]+)' | grep -Po '([0-9]+)')
 TARGETS=($(curl -u admin:admin -i -X GET http://sandbox.hortonworks.com:9090/nifi-api/controller/process-groups/root/processors | grep -Po '\"uri\":\"([a-z0-9-://.]+)' | grep -Po '(?!.*\")([a-z0-9-://.]+)'))
 length=${#TARGETS[@]}
 for ((i = 0; i != length; i++)); do
-   echo curl -u admin:admin -i -X GET ${TARGETS[i]}
-   echo "Current Revision: " $REVISION
+   >&2 echo curl -u admin:admin -i -X GET ${TARGETS[i]}
+   >&2 echo "Current Revision: " $REVISION
    curl -u admin:admin -i -H "Content-Type:application/x-www-form-urlencoded" -d "state=RUNNING&version=$REVISION" -X PUT ${TARGETS[i]}
    REVISION=$(curl -u admin:admin  -i -X GET http://sandbox.hortonworks.com:9090/nifi-api/controller/revision |grep -Po '\"version\":([0-9]+)' | grep -Po '([0-9]+)')
 done
 
 # Deploy Storm Topology
-echo "*********************************Deploying Storm Topology..."
+>&2 echo "*********************************Deploying Storm Topology..."
 storm jar /home/storm/DeviceMonitor-0.0.1-SNAPSHOT.jar com.hortonworks.iot.topology.DeviceMonitorTopology
 
-echo "*********************************Downloading Docker Images for UI..."
+>&2 echo "*********************************Downloading Docker Images for UI..."
 # Download Docker Images
 service docker start
 docker pull vvaks/mapui

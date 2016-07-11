@@ -27,13 +27,22 @@ class Master(Script):
 	
 	def install(self, env):
 		# Fill me in!
+		print 'Install the Sample Srv Master';
 		self.configure(env)
 		sh = Shell()
 		conf_dir = config.get_conf_dir()
-		sh.set_cwd(conf_dir)
-		output = sh.run('bash files/install.sh')
+		print('CONFIGURATION DIRECTORY')
+		print(conf_dir)
+		print("SET CWD:")
+		print(conf_dir + "..")
+		sh.set_cwd(conf_dir + "..")
+		output = sh.run('bash ' + conf_dir + '../files/install.sh')
+		print("WORKING DIR")
+		print(sh.run('pwd'))
 		print(output[0])
-		print 'Install the Sample Srv Master';
+		print(output[1])
+		if len(output[1]) > 0:
+			sys.exit(1)
 	
 	def stop(self, env):
 		# Fill me in!
@@ -41,17 +50,27 @@ class Master(Script):
 	
 	def start(self, env):
 		# Fill me in!
+		print 'Start the Sample Srv Master';
 		self.configure(env)
 		sh = Shell()
 		conf_dir = config.get_conf_dir()
-		sh.set_cwd(conf_dir)
-		output = sh.run('bash files/startDemoServices.sh')
+		print('CONFIGURATION DIRECTORY')
+		print(conf_dir)
+		print("SET CWD:")
+		print(conf_dir + "..")
+		sh.set_cwd(conf_dir + "..")
+		print(sh.run('pwd'))
+		sh.set_cwd(conf_dir + "..")
+		output = sh.run('bash ' + conf_dir + '../files/startDemoServices.sh')
 		print(output[0])
-		print 'Start the Sample Srv Master';
+		print(output[1])
+		if len(output[1]) > 0:
+			sys.exit(1)
 	
 	def status(self, env):
 		# Fill me in!
 		# check_process_status(pid_file)
+#		sys.exit(1)
 		print 'Status of the Sample Srv Master';
 	
 	def configure(self, env):

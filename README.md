@@ -28,9 +28,18 @@ This framework hopes to provide a rich set of features including the following:
 **Note** Ambari must be installed on your machine for these commands to work.
 
 	export VERSION=2.4
-	rm -rf /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMO_SERVICE
+	rm -rf /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMOSERVICE
 	sudo git clone https://github.com/zacblanco/devicemanagerdemo.git /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMOSERVICE
 	ambari-server restart
+	
+	
+	export VERSION=2.4
+	sed -i s/parallel_execution=0/parallel_execution=1/g /etc/ambari-agent/conf/ambari-agent.ini
+	rm -rf /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMOSERVICE
+	rm -rf /var/lib/ambari-agent/cache/stacks/HDP/$VERSION/services/DEMOSERVICE
+	cp -r /root/devicemanagerdemo /var/lib/ambari-server/resources/stacks/HDP/$VERSION/services/DEMOSERVICE
+	cp -r /root/devicemanagerdemo /var/lib/ambari-agent/cache/stacks/HDP/$VERSION/services/DEMOSERVICE
+	service ambari restart
 
 ## Need more Information?
 
