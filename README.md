@@ -13,8 +13,12 @@ when the command finishes Ambari server will have restarted and you can add the 
 ### Files to look at
 
 - `demo.py`
-- `package/scripts/master.py
-	
+- `package/scripts/master.py`
+
+Compare the above to the files at [https://github.com/ZacBlanco/hdp-demo-bootstrap](https://github.com/ZacBlanco/hdp-demo-bootstrap)
+
+- `demo.py`
+- `package/scripts/master.py`
 	
 ## Need more Information?
 
