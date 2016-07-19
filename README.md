@@ -6,6 +6,9 @@ Run the following commands via SSH on the Sandbox
 	
 	git clone https://github.com/ZacBlanco/DeviceManagerDemo /root/devicemanagerdemo
 	cd /root/devicemanagerdemo
+	cd demo_utils
+	python setup.py develop
+	cd ..
 	python demo.py install
 	
 when the command finishes Ambari server will have restarted and you can add the new service to Ambari
