@@ -36,6 +36,7 @@ def install_service():
 	print("Install here...")
 	sh = Shell('demo-files')
 	version = '2.4'
+	sh.set_cwd('.') # Sets cwd to directory where python was called
 	cmd = 'cp -r . /var/lib/ambari-server/resources/stacks/HDP/%s/services/DEMOSERVICE' % version
 	print(sh.run(cmd))
 	cmd = 'ambari-server restart'
@@ -64,8 +65,6 @@ if not len(args) == 1:
 	print(usage)
 else:
 	arg = args[0]
-
-setup()
 
 if arg == "install":
 	run()

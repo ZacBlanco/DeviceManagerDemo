@@ -1,6 +1,6 @@
 #!/bin/bash
 # curl -X DELETE -H "X-Requested-By: ambari" http://sandbox.hortonworks.com:8080/api/v1/clusters/Sandbox/services/DEMOSERVICE
-#cd /root/devicemanagerdemo/package/files
+cd /root/devicemanagerdemo/demo-files
 
 >&2 echo "*********************************Importing NIFI Template..."
 
@@ -26,7 +26,7 @@ cp target/DeviceMonitor-0.0.1-SNAPSHOT.jar /home/storm
 cd ..
 
 >&2 echo "*********************************Building Spark Topology"
-Build Spark Project and Copy to working folder
+#Build Spark Project and Copy to working folder
 cd DeviceMonitorNostradamus
 mvn clean package
 cp target/DeviceMonitorNostradamus-0.0.1-SNAPSHOT-jar-with-dependencies.jar /home/spark
@@ -137,7 +137,7 @@ chmod 755 /etc/init.d/solr
 
 #Import Spark Model
 pwd
-cd /root/devicemanagerdemo/package/files
+cd /root/devicemanagerdemo/demo-files
 cd Model
 unzip nostradamusSVMModel.zip
 cp -rvf nostradamusSVMModel /tmp
